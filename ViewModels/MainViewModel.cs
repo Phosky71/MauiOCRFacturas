@@ -9,6 +9,7 @@ namespace MauiOCRFacturas.ViewModels;
 public partial class MainViewModel
 {
     private readonly DocumentIntelligenceService _ocrService;
+    private readonly IHistorialService _historialService; // Nuevo servicio inyectado
 
     [ObservableProperty]
     private ImageSource? _imagenCapturada;
@@ -25,12 +26,11 @@ public partial class MainViewModel
     [ObservableProperty]
     private ResultadoOCR? _ultimoResultado;
 
-    // Lista estatica en memoria (sin base de datos para mantener simplicidad)
-    public static List<ResultadoOCR> Historial { get; } = new();
-
-    public MainViewModel(DocumentIntelligenceService ocrService)
+    // Inyectamos AMBOS servicios por el constructor
+    public MainViewModel(DocumentIntelligenceService ocrService, IHistorialService historialService)
     {
         _ocrService = ocrService;
+        _historialService = historialService;
     }
 
     [RelayCommand]
@@ -38,23 +38,37 @@ public partial class MainViewModel
     {
         try
         {
-            // Verificar permiso de camara
-            var status = await Permissions.RequestAsync<Permissions.Camera>();
+            // 1. Verificar primero si ya tenemos el permiso
+            var status = await Permissions.CheckStatusAsync<Permissions.Camera>();
+            if (status != PermissionStatus.Granted)
+            {
+                // Si no lo tenemos, lo solicitamos
+                status = await Permissions.RequestAsync<Permissions.Camera>();
+            }
+
             if (status != PermissionStatus.Granted)
             {
                 await Shell.Current.DisplayAlert("Permiso denegado",
-                    "Se necesita acceso a la camara para tomar fotos de facturas.", "OK");
+                    "Se necesita acceso a la cámara para tomar fotos de facturas.", "OK");
                 return;
             }
 
-            var foto = await MediaPicker.Default.CapturePhotoAsync();
-            if (foto is null) return;
+            // 2. Comprobar si el dispositivo soporta capturar fotos
+            if (MediaPicker.Default.IsCaptureSupported)
+            {
+                var foto = await MediaPicker.Default.CapturePhotoAsync();
+                if (foto is null) return;
 
-            await ProcesarFotoAsync(foto);
+                await ProcesarFotoAsync(foto);
+            }
+            else
+            {
+                await Shell.Current.DisplayAlert("Error", "Tu dispositivo no soporta la captura de fotos.", "OK");
+            }
         }
         catch (Exception ex)
         {
-            await Shell.Current.DisplayAlert("Error", $"Error al acceder a la camara: {ex.Message}", "OK");
+            await Shell.Current.DisplayAlert("Error", $"Error al acceder a la cámara: {ex.Message}", "OK");
         }
     }
 
@@ -82,17 +96,23 @@ public partial class MainViewModel
             HayResultado = false;
             ResultadoTexto = "Analizando documento con Azure Document Intelligence...";
 
-            // Mostrar preview de la imagen
-            ImagenCapturada = ImageSource.FromFile(foto.FullPath);
+            // Leer la imagen en un MemoryStream para evitar problemas de bloqueos o permisos de archivo en Android/iOS
+            using var stream = await foto.OpenReadAsync();
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            
+            // Mostrar preview de la imagen de forma segura copiando los bytes
+            ImagenCapturada = ImageSource.FromStream(() => new MemoryStream(memoryStream.ToArray()));
+
+            // Resetear la posición del stream de memoria al principio para enviarlo a Azure
+            memoryStream.Position = 0;
 
             // Analizar con Azure
-            using var stream = await foto.OpenReadAsync();
-            var resultado = await _ocrService.AnalizarDocumentoAsync(stream);
+            var resultado = await _ocrService.AnalizarDocumentoAsync(memoryStream);
             resultado.RutaImagen = foto.FullPath;
 
-            // Guardar en historial
-            resultado.Id = Historial.Count + 1;
-            Historial.Insert(0, resultado);
+            // Guardar en historial usando el servicio
+            _historialService.AgregarFactura(resultado);
 
             UltimoResultado = resultado;
             ResultadoTexto = resultado.TextoCompleto;
@@ -100,7 +120,7 @@ public partial class MainViewModel
         }
         catch (Exception ex)
         {
-            ResultadoTexto = $"Error durante el analisis:\n{ex.Message}";
+            ResultadoTexto = $"Error durante el análisis:\n{ex.Message}";
             await Shell.Current.DisplayAlert("Error de OCR",
                 $"No se pudo analizar el documento:\n{ex.Message}", "OK");
         }

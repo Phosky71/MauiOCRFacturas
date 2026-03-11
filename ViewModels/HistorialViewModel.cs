@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MauiOCRFacturas.Models;
+using MauiOCRFacturas.Services;
 using System.Collections.ObjectModel;
 
 namespace MauiOCRFacturas.ViewModels;
@@ -8,33 +9,35 @@ namespace MauiOCRFacturas.ViewModels;
 [ObservableObject]
 public partial class HistorialViewModel
 {
+    private readonly IHistorialService _historialService;
+
     [ObservableProperty]
-    private ObservableCollection<ResultadoOCR> _facturas = new();
+    private ObservableCollection<ResultadoOCR> _facturas;
 
     [ObservableProperty]
     private ResultadoOCR? _facturaSeleccionada;
 
     [ObservableProperty]
-    private bool _hayFacturas = false;
+    private bool _hayFacturas;
 
-    public HistorialViewModel()
+    // Inyectamos el servicio por el constructor
+    public HistorialViewModel(IHistorialService historialService)
     {
-        CargarHistorial();
+        _historialService = historialService;
+        // Obtenemos la referencia a la colección reactiva
+        _facturas = _historialService.ObtenerHistorial();
+        ActualizarEstado();
     }
 
-    private void CargarHistorial()
+    private void ActualizarEstado()
     {
-        Facturas.Clear();
-        foreach (var item in MainViewModel.Historial)
-            Facturas.Add(item);
-
         HayFacturas = Facturas.Count > 0;
     }
 
     [RelayCommand]
     private void ActualizarHistorial()
     {
-        CargarHistorial();
+        ActualizarEstado();
     }
 
     [RelayCommand]
@@ -54,13 +57,14 @@ public partial class HistorialViewModel
     {
         bool confirmar = await Shell.Current.DisplayAlert(
             "Confirmar",
-            "Se eliminaran todos los registros del historial. Continuar?",
-            "Si, borrar", "Cancelar");
+            "¿Se eliminarán todos los registros del historial. Continuar?",
+            "Sí, borrar", "Cancelar");
 
         if (!confirmar) return;
 
-        MainViewModel.Historial.Clear();
-        CargarHistorial();
+        // Usamos el servicio para limpiar
+        _historialService.LimpiarHistorial();
+        ActualizarEstado();
     }
 
     [RelayCommand]

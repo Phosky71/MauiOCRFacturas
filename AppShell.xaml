@@ -20,6 +20,27 @@
             Title="Historial"
             Icon="list.png"
             ContentTemplate="{DataTemplate views:HistorialPage}" />
+        
+        <ShellContent
+            x:Name="vision"
+            Route="vision"
+            Title="Objetos"
+            Icon="eye.png"
+            ContentTemplate="{DataTemplate views:VisionPage}" />
+        
+        <ShellContent
+            x:Name="traductor"
+            Route="traductor"
+            Title="Traductor"
+            Icon="micro.png"
+            ContentTemplate="{DataTemplate views:TraductorPage}" />
+        
+        <ShellContent
+            x:Name="resumen"
+            Route="resumen"
+            Title="Resumen Voz"
+            Icon="micro.png"
+            ContentTemplate="{DataTemplate views:VoiceSummaryPage}" />
     </TabBar>
 
 </Shell>

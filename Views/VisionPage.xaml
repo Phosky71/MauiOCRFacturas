@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:MauiOCRFacturas.ViewModels"
+             xmlns:camera="clr-namespace:Camera.MAUI;assembly=Camera.MAUI"
+             x:Class="MauiOCRFacturas.Views.VisionPage"
+             x:DataType="vm:VisionViewModel"
+             Title="Detector de Objetos">
+
+    <Grid RowDefinitions="*,Auto">
+
+        <!-- Feed de cámara en tiempo real con canvas superpuesto -->
+        <Grid Grid.Row="0">
+
+            <!-- Imagen de la cámara en vivo -->
+            <camera:CameraView x:Name="CamaraView"
+                               HorizontalOptions="Fill"
+                               VerticalOptions="Fill" />
+
+            <!-- Canvas que dibuja las cajas y etiquetas encima -->
+            <GraphicsView Drawable="{Binding CanvasObjetos}"
+                          HorizontalOptions="Fill"
+                          VerticalOptions="Fill" />
+
+            <!-- Indicador de carga en esquina superior derecha -->
+            <ActivityIndicator IsRunning="{Binding IsLoading}"
+                               IsVisible="{Binding IsLoading}"
+                               Color="White"
+                               HorizontalOptions="End"
+                               VerticalOptions="Start"
+                               Margin="0,10,10,0"
+                               HeightRequest="30" />
+        </Grid>
+
+        <!-- Panel inferior con resultados y controles -->
+        <VerticalStackLayout Grid.Row="1"
+                             Padding="16"
+                             Spacing="8"
+                             BackgroundColor="White">
+
+            <Label Text="Detector de Objetos en Tiempo Real"
+                   FontSize="16"
+                   FontAttributes="Bold"
+                   TextColor="#0078D4"
+                   HorizontalOptions="Center" />
+
+            <Label Text="Azure Computer Vision"
+                   FontSize="12"
+                   TextColor="Gray"
+                   HorizontalOptions="Center" />
+
+            <BoxView HeightRequest="1" Color="LightGray" />
+
+            <ScrollView HeightRequest="100">
+                <Label Text="{Binding ResultadoTexto}"
+                       FontSize="12"
+                       TextColor="#555"
+                       LineBreakMode="WordWrap" />
+            </ScrollView>
+
+            <Button Text="{Binding TextoBoton}"
+                    Command="{Binding ToggleAnalisisCommand}"
+                    BackgroundColor="#0078D4"
+                    TextColor="White"
+                    CornerRadius="10"
+                    HeightRequest="45" />
+
+        </VerticalStackLayout>
+
+    </Grid>
+</ContentPage>
