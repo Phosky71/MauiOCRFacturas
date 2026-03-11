@@ -1,8 +1,6 @@
-# MauiOCRFacturas
+# Azure AI Invoice Scanner
 
 > **⚠️ Note:** This project is currently paused and will not be actively developed for the time being.
-
-**Academic project** developed as part of the subject *Desarrollo de Aplicaciones Inteligentes con Azure Cognitive Services y .NET MAUI*.
 
 A cross-platform mobile application built with **.NET MAUI** (targeting Android) that integrates multiple **Azure AI services** into a single app. The core feature is intelligent OCR of invoices using **Azure Document Intelligence**, extended with computer vision, speech recognition, real-time translation, AI-powered voice summaries via OpenAI, and message queuing through Azure Service Bus.
 
@@ -259,7 +257,3 @@ Required permissions (declared in `AndroidManifest.xml`):
 - **.NET 9** / .NET MAUI
 - **Android** API 21+ (Android 5.0 Lollipop or higher)
 - Active Azure subscription with the services listed above configured
-
----
-
-> This project was developed as an academic exercise exploring the integration of Azure Cognitive Services into a .NET MAUI mobile application. Development is currently paused.
