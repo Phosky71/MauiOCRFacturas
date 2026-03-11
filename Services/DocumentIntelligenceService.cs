@@ -1,23 +1,26 @@
 using Azure;
 using Azure.AI.FormRecognizer.DocumentAnalysis;
 using MauiOCRFacturas.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace MauiOCRFacturas.Services;
 
 public class DocumentIntelligenceService
 {
-    // IMPORTANTE: Reemplaza estos valores con tus propios datos de Azure
-    private const string Endpoint = "https://TU-RECURSO.cognitiveservices.azure.com/";
-    private const string ApiKey = "TU_CLAVE_DE_API_AQUI";
+    private readonly string _endpoint;
+    private readonly string _apiKey;
 
     private readonly DocumentAnalysisClient _client;
 
-    public DocumentIntelligenceService()
+    public DocumentIntelligenceService(IConfiguration configuration)
     {
-        var credential = new AzureKeyCredential(ApiKey);
-        _client = new DocumentAnalysisClient(new Uri(Endpoint), credential);
+        _endpoint = configuration["AzureDocumentIntelligence:Endpoint"]!;
+        _apiKey = configuration["AzureDocumentIntelligence:ApiKey"]!;
+
+        _client = new DocumentAnalysisClient(new Uri(_endpoint), new AzureKeyCredential(_apiKey));
     }
 
+    
     /// <summary>
     /// Analiza un documento (factura) a partir de un stream de imagen
     /// y devuelve el resultado como un objeto ResultadoOCR.

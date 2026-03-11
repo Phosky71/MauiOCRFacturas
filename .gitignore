@@ -1,0 +1,10 @@
+﻿/Properties/
+/Platforms/
+/Resources/
+/global.Designer.json
+.idea
+.vs
+obj
+bin
+*.user
+appsettings.json

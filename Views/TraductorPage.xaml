@@ -1,0 +1,125 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:MauiOCRFacturas.ViewModels"
+             x:Class="MauiOCRFacturas.Views.TraductorPage"
+             x:DataType="vm:TraductorViewModel"
+             Title="Traductor de Voz">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="16" Padding="20">
+
+            <Label Text="Traductor de Voz"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   TextColor="#107C10" />
+
+            <Label Text="Azure Speech + Translator"
+                   FontSize="14"
+                   HorizontalOptions="Center"
+                   TextColor="Gray" />
+
+            <BoxView HeightRequest="1" Color="LightGray" />
+
+            <!-- Selección múltiple de idiomas -->
+            <Label Text="Traducir a:"
+                   FontAttributes="Bold"
+                   TextColor="#333" />
+
+            <CollectionView ItemsSource="{Binding IdiomasDisponibles}">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical" Span="2" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:IdiomaOpcion">
+                        <HorizontalStackLayout Spacing="8" Padding="4">
+                            <CheckBox IsChecked="{Binding Seleccionado}" 
+                                      Color="#107C10" />
+                            <Label Text="{Binding Nombre}"
+                                   VerticalOptions="Center"
+                                   TextColor="#333" />
+                        </HorizontalStackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <BoxView HeightRequest="1" Color="LightGray" />
+
+            <!-- Botón de grabación -->
+            <Button Text="🎤 Pulsa para Hablar"
+                    Command="{Binding GrabarYTraducirCommand}"
+                    IsEnabled="{Binding IsLoading,
+                        Converter={StaticResource InverseBoolConverter}}"
+                    BackgroundColor="#107C10"
+                    TextColor="White"
+                    CornerRadius="10"
+                    HeightRequest="60"
+                    FontSize="16" />
+
+            <!-- Indicador de carga -->
+            <VerticalStackLayout IsVisible="{Binding IsLoading}"
+                                 HorizontalOptions="Center"
+                                 Spacing="4">
+                <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                   Color="#107C10" />
+                <Label Text="Procesando con Azure..."
+                       TextColor="Gray"
+                       HorizontalOptions="Center" />
+            </VerticalStackLayout>
+
+            <!-- Texto reconocido -->
+            <Frame CornerRadius="10"
+                   Padding="12"
+                   BorderColor="#E0E0E0"
+                   BackgroundColor="#F8F8F8"
+                   IsVisible="{Binding TextoReconocido,
+                       Converter={StaticResource NotNullConverter}}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Texto reconocido:"
+                           FontAttributes="Bold"
+                           TextColor="#333" />
+                    <Label Text="{Binding TextoReconocido}"
+                           FontSize="14"
+                           TextColor="#555"
+                           LineBreakMode="WordWrap" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Traducciones simultáneas -->
+            <CollectionView ItemsSource="{Binding Traducciones}"
+                            IsVisible="{Binding Traducciones.Count,
+                                Converter={StaticResource NotNullConverter}}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TraduccionResultado">
+                        <Frame CornerRadius="10"
+                               Padding="12"
+                               Margin="0,4"
+                               BorderColor="#107C10"
+                               BackgroundColor="#F0FFF0">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="{Binding Idioma}"
+                                       FontAttributes="Bold"
+                                       TextColor="#107C10"
+                                       FontSize="12" />
+                                <Label Text="{Binding Texto}"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="#333"
+                                       LineBreakMode="WordWrap" />
+                            </VerticalStackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <!-- Confirmación Service Bus -->
+            <Label Text="✓ Traducciones enviadas via Azure Service Bus"
+                   FontSize="11"
+                   TextColor="#107C10"
+                   HorizontalOptions="Center"
+                   IsVisible="{Binding MensajeEnviado}" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
